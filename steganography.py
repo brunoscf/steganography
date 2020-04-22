@@ -6,10 +6,17 @@ class Steganography:
         self._image = cv2.imread(filepath)
         self._height, self._width, self._channels = self._image.shape
     
-    def _convert_message(self, message, DELIMITER):
+    def _get_converted_message(self, message, DELIMITER):
         message = DELIMITER + message + DELIMITER
         message = [format(ord(char), 'b').zfill(8) for char in message]
-        return ''.join(message)
+
+        for char in ''.join(message):
+            yield int(char)
+    
+    def _get_pixel(self):
+        for x in np.arange(self._width):
+            for y in np.arange(self._height):
+                yield self._image[y, x]
 
     def _check_size_enough(self, msg_length):
         '''
@@ -20,12 +27,19 @@ class Steganography:
 
     def encode(self, message, DELIMITER='%'):
         self._check_size_enough(len(message))
-        bin_message = self._convert_message(message, DELIMITER)
+        bin_message = self._get_converted_message(message, DELIMITER)
 
-        for x in range(self._width):
-            for y in range(self._height):
-                for channel in self._image[y, x]:
-                    channel = ord(format(channel, 'b'))[:-1]
+        try:
+            for pixel in self._get_pixel():
+                for pos, channel in enumerate(pixel):
+                    pixel[pos] = channel | next(bin_message)
+
+        except StopIteration:
+            pass
+
+        cv2.imshow('img', self._image)
+        cv2.waitKey(0)
+
             
 
 
