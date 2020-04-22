@@ -1,9 +1,10 @@
 import cv2
 import numpy as np
+import time
 
 class Steganography:
-    def __init__(self, filepath):
-        self._image = cv2.imread(filepath)
+    def __init__(self, filename):
+        self._image = cv2.imread(filename)
         self._height, self._width, self._channels = self._image.shape
     
     def _get_converted_message(self, message, DELIMITER):
@@ -37,11 +38,8 @@ class Steganography:
         except StopIteration:
             pass
 
-        cv2.imshow('img', self._image)
-        cv2.waitKey(0)
-
-            
-
+        finally:
+            cv2.imwrite(time.strftime('%m-%d-%Y %H-%M-%S') + '.png', self._image)
 
     def decode(self, DELIMITER=''):
         pass
