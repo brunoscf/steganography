@@ -23,7 +23,10 @@ class Steganography:
             raise ValueError('The choosen image does not have size enough')
 
     def _has_message_hidden(self, DELIMITER):
-        print(self._image[:8])
+        first_char = [format(value, 'b')[-1] for value in self._image[:8]]
+        first_char = ''.join(first_char)
+        if chr(int(first_char, 2)) != DELIMITER:
+            raise ValueError('The image has no a hidden message written using the choosen delimiter')
 
     def encode(self, message, DELIMITER='%'):
         self._check_size_enough(len(message))
@@ -42,4 +45,4 @@ class Steganography:
 
     def decode(self, DELIMITER='%'):
         self._has_message_hidden(DELIMITER)
-        print('existe')
+        
