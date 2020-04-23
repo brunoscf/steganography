@@ -23,10 +23,11 @@ class Steganography:
             raise ValueError('The choosen image does not have size enough')
 
     def _has_message_hidden(self, DELIMITER):
-        first_char = [format(value, 'b')[-1] for value in self._image[:8]]
+        first_char = np.where(self._image[:8] % 2, '1', '0')
         first_char = ''.join(first_char)
+
         if chr(int(first_char, 2)) != DELIMITER:
-            raise ValueError('The image has no a hidden message written using the choosen delimiter')
+             raise ValueError('The image has no a hidden message written using the choosen delimiter')
 
     def encode(self, message, DELIMITER='%'):
         self._check_size_enough(len(message))
@@ -40,9 +41,20 @@ class Steganography:
             pass
 
         finally:
-            self._image = np.reshape(self._image, self._initial_shape)
-            cv2.imwrite(time.strftime('%m-%d-%Y %H-%M-%S') + '.bmp', self._image)
+            self._image = self._image.reshape(self._initial_shape)
+            cv2.imwrite(time.strftime('%m-%d-%Y %H-%M-%S') + '.png', self._image)
 
     def decode(self, DELIMITER='%'):
         self._has_message_hidden(DELIMITER)
         
+        decoded_msg = []
+        while True:
+            self._image = np.delete(self._image, [0, 1, 2, 3, 4, 5, 6, 7])
+            byte = np.where(self._image[:8] % 2, '1', '0')
+            byte = "".join(byte)
+            char = chr(int(byte, 2))
+            if char == DELIMITER:
+                break
+            decoded_msg.append(char)
+
+        return "".join(decoded_msg)
