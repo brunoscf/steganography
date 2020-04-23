@@ -1,37 +1,50 @@
 import cv2
 import numpy as np
 import time
-
 class Steganography:
+    '''
+    This class allows you to encode and decode messages into images.
+      * The DELIMITER marks the begin and the end of a message. It can be changed using
+        the class method `set_delimiter`
+    '''
+    DELIMITER = '%'
+
     def __init__(self, filename):
         self._image = cv2.imread(filename)
-        self._initial_shape = self._image.shape
+        self._original_shape = self._image.shape
         self._image = self._image.flatten()
 
-    def _get_converted_message(self, message, DELIMITER):
-        message = DELIMITER + message + DELIMITER
+    @classmethod
+    def set_delimiter(self, DELIMITER):
+        self.DELIMITER = DELIMITER
+    
+    def _get_converted_message(self, message):
+        '''
+            Returns the message converted to binary
+        '''
+        message = self.DELIMITER + message + self.DELIMITER
         message = [format(ord(char), 'b').zfill(8) for char in message]
 
         for char in ''.join(message):
             yield char
 
     def _check_size_enough(self, msg_length):
-        '''
-            (IMG_HEIGHT * IMG_WIDTH * QUANT_CHANNELS) / BYTE_SIZE
-        '''
         if msg_length*8 + 16 > self._image.size/8:
             raise ValueError('The choosen image does not have size enough')
 
-    def _has_message_hidden(self, DELIMITER):
+    def _has_message_hidden(self):
+        '''
+            Checks if the choosen delimiter is the first character in the image. If it is, so the message has a hidden message
+        '''
         first_char = np.where(self._image[:8] % 2, '1', '0')
         first_char = ''.join(first_char)
 
-        if chr(int(first_char, 2)) != DELIMITER:
+        if chr(int(first_char, 2)) != self.DELIMITER:
              raise ValueError('The image has no a hidden message written using the choosen delimiter')
 
-    def encode(self, message, DELIMITER='%'):
+    def encode(self, message):
         self._check_size_enough(len(message))
-        bin_message = self._get_converted_message(message, DELIMITER)
+        bin_message = self._get_converted_message(message)
 
         try:
             for pos, channel in enumerate(self._image):
@@ -41,11 +54,11 @@ class Steganography:
             pass
 
         finally:
-            self._image = self._image.reshape(self._initial_shape)
+            self._image = self._image.reshape(self._original_shape)
             cv2.imwrite(time.strftime('%m-%d-%Y %H-%M-%S') + '.png', self._image)
 
-    def decode(self, DELIMITER='%'):
-        self._has_message_hidden(DELIMITER)
+    def decode(self):
+        self._has_message_hidden()
         
         decoded_msg = []
         while True:
@@ -53,7 +66,7 @@ class Steganography:
             byte = np.where(self._image[:8] % 2, '1', '0')
             byte = "".join(byte)
             char = chr(int(byte, 2))
-            if char == DELIMITER:
+            if char == self.DELIMITER:
                 break
             decoded_msg.append(char)
 
