@@ -1,10 +1,24 @@
-from steganography import Steganography
+from steganography import Steganography, StegError
 
-Steganography.set_delimiter('&')
-#s = Steganography('/home/bruno/Documents/Programacao/Python/steganography/04-22-2020 17-50-30.png')
-s = Steganography('/home/bruno/Documents/Programacao/Python/steganography/04-23-2020 18-47-34.png')
-# s.encode("""
-#      Bruno Simões Cardoso Ferreira
-#      Engenharia de Computação
-# """)
-print(s.decode())
+if __name__ == '__main__':
+    #ENCODE EXAMPLE
+    try:
+        steg = Steganography('monalisa.jpg')
+        steg.encode("""I have no passwords or money to hide!
+                                        -Just another poor programmer...""")
+
+    except StegError:
+        print('Insert a larger image or a smaller message!')
+        
+    
+
+    #DECODE EXAMPLE
+    # try:
+    #     filename = '' #puts here a encoded image
+    #     steg = Steganography(filename)
+    #     code = steg.decode()
+        
+    #     print(code)
+    
+    # except StegError:
+    #     print('No one message was found!')
